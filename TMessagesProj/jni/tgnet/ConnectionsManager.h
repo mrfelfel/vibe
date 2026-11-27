@@ -64,6 +64,7 @@ public:
     // Sets the per-instance RSA key, switches the current DC, optionally resets auth keys,
     // then reconnects. Runs on the network thread.
     void applyServerConfig(std::string host, uint32_t port, bool isTelegram, uint32_t mainDcId, std::string pemKey, uint64_t fingerprint, bool resetKeys);
+    void setApiId(int32_t apiId);
     void setDelegate(ConnectiosManagerDelegate *connectiosManagerDelegate);
     ConnectionState getConnectionState();
     void setUserId(int64_t userId);

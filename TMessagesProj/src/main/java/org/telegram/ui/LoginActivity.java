@@ -2110,8 +2110,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
 
             nextPressed = true;
             TLRPC.TL_auth_sendCode sendCode = new TLRPC.TL_auth_sendCode();
-            sendCode.api_hash = BuildVars.APP_HASH;
-            sendCode.api_id = BuildVars.APP_ID;
+            sendCode.api_hash = OwpengramServers.apiHashForAccount(currentAccount);
+            sendCode.api_id = OwpengramServers.apiIdForAccount(currentAccount);
             sendCode.phone_number = encoded;
             sendCode.settings = new TLRPC.TL_codeSettings();
 
@@ -3360,8 +3360,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                 ConnectionsManager.getInstance(currentAccount).cleanup(false);
 
                 TLRPC.TL_auth_sendCode sendCode = new TLRPC.TL_auth_sendCode();
-                sendCode.api_hash = BuildVars.APP_HASH;
-                sendCode.api_id = BuildVars.APP_ID;
+                sendCode.api_hash = OwpengramServers.apiHashForAccount(currentAccount);
+                sendCode.api_id = OwpengramServers.apiIdForAccount(currentAccount);
                 sendCode.phone_number = phone;
                 sendCode.settings = settings;
                 req = sendCode;

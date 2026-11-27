@@ -29,6 +29,7 @@ import androidx.credentials.exceptions.NoCredentialException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
 import org.telegram.messenger.browser.Browser;
+import org.telegram.owpengram.OwpengramServers;
 import org.telegram.tgnet.ConnectionsManager;
 import org.telegram.tgnet.TLObject;
 import org.telegram.tgnet.TLRPC;
@@ -172,8 +173,8 @@ public class PasskeysController {
         final Runnable[] cancel = new Runnable[1];
 
         final TL_account.initPasskeyLogin req = new TL_account.initPasskeyLogin();
-        req.api_id = BuildVars.APP_ID;
-        req.api_hash = BuildVars.APP_HASH;
+        req.api_id = OwpengramServers.apiIdForAccount(currentAccount);
+        req.api_hash = OwpengramServers.apiHashForAccount(currentAccount);
         final int requestId = ConnectionsManager.getInstance(currentAccount).sendRequestTyped(req, AndroidUtilities::runOnUIThread, (res, err) -> {
             if (cancelled[0]) return;
             if (err != null) {

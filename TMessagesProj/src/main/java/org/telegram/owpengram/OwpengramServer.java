@@ -9,6 +9,11 @@ public class OwpengramServer {
     public String host;
     public int port;
     public String description = "";
+    // MTProto app credentials this server expects. 0 / empty means "use the
+    // app's own BuildVars credentials" -- which is what official Telegram and
+    // the public OwpenGram server want.
+    public int apiId;
+    public String apiHash = "";
     public String rsaPublicKey = "";
     public long rsaKeyFingerprint = 0;
     public String logoPath = "";
@@ -29,6 +34,8 @@ public class OwpengramServer {
         obj.put("host", host);
         obj.put("port", port);
         if (description != null && !description.isEmpty()) obj.put("description", description);
+        if (apiId > 0) obj.put("apiId", apiId);
+        if (apiHash != null && !apiHash.isEmpty()) obj.put("apiHash", apiHash);
         if (rsaPublicKey != null && !rsaPublicKey.isEmpty()) obj.put("rsaPublicKey", rsaPublicKey);
         if (logoPath != null && !logoPath.isEmpty()) obj.put("logoPath", logoPath);
         if (multiDc) obj.put("multiDc", true);
@@ -43,6 +50,8 @@ public class OwpengramServer {
         s.host = obj.getString("host");
         s.port = obj.getInt("port");
         s.description = obj.optString("description", "");
+        s.apiId = obj.optInt("apiId", 0);
+        s.apiHash = obj.optString("apiHash", "");
         s.rsaPublicKey = obj.optString("rsaPublicKey", "");
         s.logoPath = obj.optString("logoPath", "");
         s.isOfficial = false;

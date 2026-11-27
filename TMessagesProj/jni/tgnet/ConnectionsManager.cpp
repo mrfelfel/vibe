@@ -2000,6 +2000,22 @@ void ConnectionsManager::initDatacenters() {
     }
 }
 
+void ConnectionsManager::setApiId(int32_t apiId) {
+    scheduleTask([&, apiId] {
+        if (currentApiId == apiId) {
+            return;
+        }
+        currentApiId = apiId;
+        // Force the next request on every DC to be wrapped in a fresh
+        // initConnection carrying the new api_id. Auth keys and sessions are
+        // untouched -- only the wrapper (resent per version anyway) changes.
+        for (auto &entry : datacenters) {
+            entry.second->lastInitVersion = 0;
+            entry.second->lastInitMediaVersion = 0;
+        }
+    });
+}
+
 void ConnectionsManager::applyServerConfig(std::string host, uint32_t port, bool isTelegram, uint32_t mainDcId, std::string pemKey, uint64_t fingerprint, bool resetKeys) {
     scheduleTask([&, host, port, isTelegram, mainDcId, pemKey, fingerprint, resetKeys] {
         // 1. Per-instance RSA key. Cleared thread_local cache so the next handshake

@@ -243,6 +243,10 @@ void applyServerConfig(JNIEnv *env, jclass c, jint instanceNum, jstring host, ji
     }
 }
 
+void setApiId(JNIEnv *env, jclass c, jint instanceNum, jint apiId) {
+    ConnectionsManager::getInstance(instanceNum).setApiId((int32_t) apiId);
+}
+
 void setProxySettings(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint port, jstring username, jstring password, jstring secret) {
     const char *addressStr = env->GetStringUTFChars(address, 0);
     const char *usernameStr = env->GetStringUTFChars(username, 0);
@@ -557,6 +561,7 @@ static JNINativeMethod ConnectionsManagerMethods[] = {
         {"native_bindRequestToGuid", "(III)V", (void *) bindRequestToGuid},
         {"native_applyDatacenterAddress", "(IILjava/lang/String;I)V", (void *) applyDatacenterAddress},
         {"native_applyServerConfig", "(ILjava/lang/String;IZILjava/lang/String;JZ)V", (void *) applyServerConfig},
+        {"native_setApiId", "(II)V", (void *) setApiId},
         {"native_setProxySettings", "(ILjava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V", (void *) setProxySettings},
         {"native_getConnectionState", "(I)I", (void *) getConnectionState},
         {"native_setUserId", "(IJ)V", (void *) setUserId},

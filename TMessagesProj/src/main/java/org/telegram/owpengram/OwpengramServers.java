@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.graphics.Bitmap;
 
 import org.telegram.messenger.ApplicationLoader;
+import org.telegram.messenger.BuildVars;
 import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MessagesController;
 import org.telegram.messenger.UserConfig;
@@ -198,6 +199,14 @@ public class OwpengramServers {
             if (updated.id.equals(customs.get(i).id)) {
                 customs.set(i, updated);
                 saveCustomServers(customs);
+                // An edited api_id has to reach the live connection too, not
+                // just the stored row -- the account keeps running until the
+                // next restart otherwise.
+                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
+                    if (updated.id.equals(getServerIdForAccount(a))) {
+                        ConnectionsManager.native_setApiId(a, apiIdForServer(updated));
+                    }
+                }
                 return;
             }
         }
@@ -226,6 +235,31 @@ public class OwpengramServers {
 
     public static OwpengramServer getServerForAccount(int accountNum) {
         return getServerById(getServerIdForAccount(accountNum));
+    }
+
+    /**
+     * MTProto app credentials to use for the account's server. A server that
+     * defines its own api_id/api_hash gets those; everything else (official
+     * Telegram, the public OwpenGram server, or a custom server that only
+     * speaks the standard app) falls back to the ones compiled into the app.
+     */
+    public static int apiIdForAccount(int accountNum) {
+        return apiIdForServer(getServerForAccount(accountNum));
+    }
+
+    public static String apiHashForAccount(int accountNum) {
+        return apiHashForServer(getServerForAccount(accountNum));
+    }
+
+    private static int apiIdForServer(OwpengramServer server) {
+        return server != null && server.apiId > 0 ? server.apiId : BuildVars.APP_ID;
+    }
+
+    private static String apiHashForServer(OwpengramServer server) {
+        if (server != null && server.apiHash != null && !server.apiHash.isEmpty()) {
+            return server.apiHash;
+        }
+        return BuildVars.APP_HASH;
     }
 
     public static boolean hasServerForAccount(int accountNum) {
@@ -372,6 +406,9 @@ public class OwpengramServers {
         int mainDc = server.mainDcId > 0
                 ? server.mainDcId
                 : (server.isTelegram ? 2 : 1);
+        // api_id is part of every initConnection wrapper but not of the auth
+        // key, so it is set alongside the server rather than through init().
+        ConnectionsManager.native_setApiId(accountNum, apiIdForServer(server));
         ConnectionsManager.native_applyServerConfig(
                 accountNum,
                 server.host,

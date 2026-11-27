@@ -55,6 +55,8 @@ public class AddServerFragment extends BaseFragment {
     private EditTextBoldCursor addressField;
     private ProgressBar addressSpinner;
     private EditTextBoldCursor descField;
+    private EditTextBoldCursor apiIdField;
+    private EditTextBoldCursor apiHashField;
     private EditTextBoldCursor rsaField;
     private EditTextBoldCursor mainDcField;
     private View mainDcRow;
@@ -183,6 +185,12 @@ public class AddServerFragment extends BaseFragment {
         mainDcRow = mainDcContainer;
 
         addDividerToCard(section3, context);
+        apiIdField = buildField(context, "API ID (optional)", InputType.TYPE_CLASS_NUMBER, EditorInfo.IME_ACTION_NEXT);
+        addFieldToCard(section3, apiIdField, true);
+        apiHashField = buildField(context, "API Hash (optional)", InputType.TYPE_CLASS_TEXT, EditorInfo.IME_ACTION_NEXT);
+        addFieldToCard(section3, apiHashField, false);
+
+        addDividerToCard(section3, context);
         rsaField = buildField(context, "RSA Public Key (PEM)", InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_LONG_MESSAGE, EditorInfo.IME_ACTION_DONE);
         rsaField.setMinLines(3);
         rsaField.setGravity(Gravity.TOP);
@@ -202,6 +210,12 @@ public class AddServerFragment extends BaseFragment {
             addressField.setText(editingServer.port > 0
                     ? editingServer.host + ":" + editingServer.port
                     : editingServer.host);
+            if (editingServer.apiId > 0) {
+                apiIdField.setText(String.valueOf(editingServer.apiId));
+            }
+            if (editingServer.apiHash != null && !editingServer.apiHash.isEmpty()) {
+                apiHashField.setText(editingServer.apiHash);
+            }
             rsaField.setText(editingServer.rsaPublicKey);
             mainDcField.setText(String.valueOf(editingServer.mainDcId > 0
                     ? editingServer.mainDcId : DEFAULT_SINGLE_MAIN_DC));
@@ -398,6 +412,28 @@ public class AddServerFragment extends BaseFragment {
             return;
         }
 
+        // Per-server app credentials are a pair: a half-filled one would send
+        // an api_id the server doesn't know the hash for and every login would
+        // fail with API_ID_INVALID, so reject it here instead.
+        String apiIdText = apiIdField.getText().toString().trim();
+        String apiHash = apiHashField.getText().toString().trim();
+        int apiId = 0;
+        if (!apiIdText.isEmpty()) {
+            try {
+                apiId = Integer.parseInt(apiIdText);
+            } catch (NumberFormatException e) {
+                apiId = 0;
+            }
+        }
+        if ((apiId > 0) != !apiHash.isEmpty()) {
+            if (apiId <= 0) {
+                showFieldError(apiIdField, "Enter the API ID that matches this API hash");
+            } else {
+                showFieldError(apiHashField, "Enter the API hash that matches this API ID");
+            }
+            return;
+        }
+
         // Reuse editingServer as the object we mutate even when it's just a
         // link-prefilled, id-less server -- addCustomServer() below mints the
         // id itself. Only an actual existing (has-id) server goes through
@@ -419,6 +455,8 @@ public class AddServerFragment extends BaseFragment {
         server.host        = host;
         server.port        = port;
         server.description = descField.getText().toString().trim();
+        server.apiId      = apiId;
+        server.apiHash    = apiHash;
         server.rsaPublicKey = rsaField.getText().toString().trim();
         server.multiDc     = multiDcEnabled;
         server.mainDcId    = mainDc;
